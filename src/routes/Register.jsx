@@ -1,49 +1,106 @@
-import { useContext } from "react"
-import { UserContext } from "../context/UserProvider"
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useContext } from "react";
+import { UserContext } from "../context/UserProvider";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 
 const Register = () => {
-  const [email,setemail] = useState ('martin@test.com ')
-  const [password, setPassword] = useState ('123456 ')
+  const navigate = useNavigate();
+  const { registerUser } = useContext(UserContext);
 
-  const navegate = useNavigate()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    getValues,
+    setError,
+  } = useForm({
+    defaultValues: {
+      email: "mar@mar.com",
+      password: "123456",
+      repassword: "123456",
+    },
+  });
 
-  const {registerUSer} = useContext (UserContext)
+  const onSubmit = async (data) => {
+    const { email, password } = data;
+    console.log(email, password);
+    try {
+      await registerUser(email, password);
+      console.log('Usuario creado');
+      navigate("/");
+    } catch (error) {
+      console.log(error.code);
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          console.log("Ya está registrado este correo");
+          setError("email", {
+            type: "manual",
+            message: "Usuario ya registrado",
+          });
+          break;
+        default:
+          console.log('Ocurrió un error en el servidor');
+          break;
+      }
+    }
+  };
 
-  const handleSubmit =  async (e)=> {
-        e.preventDefault()
-        console.log("procesando form:" , email, password );
-        try {
-            await registerUSer(email,password)
-            const navegate = useNavigate()
-            console.log('usuario creado')
-            navegate("/")
-        } catch (error) {
-            console.log(error.code);
-        }
-         };
+  return (
+    <>
+      <h1>Registro</h1>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <input 
+          type="email" 
+          placeholder="Ingrese email" 
+          {...register("email", {
+            required: {
+              value: true,
+              message: 'Campo obligatorio',
+            },
+            pattern: {
+              value: /[a-z0-9]+(\.[_a-z0-9]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,15})/,
+              message: "Formato de email incorrecto",
+            },
+          })}
+        />
+        {errors.email && <p>{errors.email.message}</p>}
 
-    return (
-        <>
-            <h1>Register</h1>
-            <form  onSubmit={handleSubmit}> 
-             <input 
-                type="email" 
-                placeholder="ingrese email" 
-                value={email}
-                onChange={(e) => setemail (e.target.value) }
-                />
-                   <input type="password" 
-                placeholder="ingrese password" 
-                value={password}
-                onChange={ (e) => setPassword (e.target.value) }
-                />
-                <button type="submit" >Register</button>
-            </form>
-        
-        </>
-  )
+        <input 
+          type="password" 
+          placeholder="Ingrese contraseña" 
+          {...register("password", {
+            minLength: {
+              value: 6,
+              message: "Mínimo ingresar 6 caracteres",
+            },
+            validate: {
+              trim: (v) => {
+                if (!v.trim()) {  
+                  return "No puede estar vacío";
+                }
+                return true;
+              },
+            },
+          })}
+        />
+        {errors.password && <p>{errors.password.message}</p>}
+
+        <input 
+          type="password" 
+          placeholder="Repita contraseña" 
+          {...register("repassword", {
+            validate: {
+              equals: (v) =>
+                v === getValues("password") || "Las contraseñas no coinciden",
+            },
+          })}
+        />
+        {errors.repassword && <p>{errors.repassword.message}</p>}
+
+        <button type="submit">Registrarse</button>
+      </form>
+    </>
+  );
 }
 
-export default Register
+export default Register;
