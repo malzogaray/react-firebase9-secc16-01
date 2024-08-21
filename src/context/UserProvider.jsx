@@ -26,7 +26,7 @@ const UserProvider = ({ children }) => {
     }, [] );
 
     const registerUser = (email,password) => 
-        createUserWithEmailAndPassword(auth,email,password);
+          createUserWithEmailAndPassword(auth,email,password);
 
     const loginUser = (email, password) => signInWithEmailAndPassword(auth,email,password);
 
