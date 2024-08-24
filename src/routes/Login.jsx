@@ -18,7 +18,6 @@ const Login = () => {
         register,
         handleSubmit,
         formState:{errors},
-        getValues,
         setError,
       } = useForm();
 
@@ -27,21 +26,17 @@ const Login = () => {
           await loginUser(email, password);
                 navigate("/");
         } catch (error) {
-          console.log(error.code);
-          setError("firebase",{
-            message: erroresFirabase (error.code),
-          }  )
-          
-        }
+          const {code,message} = erroresFirabase(error.code)
+          setError("code",{ message });
       };
    
-
+    };
     return (
         <>
             <h1>Login</h1>
-            <FormError error={errors.firebase} />
             <form onSubmit={handleSubmit(onSubmit)}>
             <FormInput
+              label="ingresa tu correo"
                   type="email" 
                   placeholder="Ingrese email" 
                     {...register("email", {
@@ -52,6 +47,7 @@ const Login = () => {
                </ FormInput>
 
                <FormInput 
+                  label="ingresa contraseña"
                   type="password" 
                   placeholder="Ingrese contraseña" 
                   {...register("password", {
@@ -62,8 +58,12 @@ const Login = () => {
                  <FormError error={errors.password}  />
                  </FormInput>  
 
-                <button type="submit">Login</button>
-
+                 <button 
+          type="submit" 
+          className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          Login
+        </button>
             </form>
         </>
     );
